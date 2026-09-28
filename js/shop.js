@@ -71,9 +71,45 @@ function renderCart() {
   $("sum").textContent = money(total);
 }
 
+function brandOf(p) {
+  const b = String(p.brand || "").toUpperCase();
+  if (b === "A" || b === "B" || b === "C") return b;
+  return "精選";
+}
+
+function cardHtml(p) {
+  const zone = brandOf(p);
+  return `<article class="card">
+      <div class="pic" style="background-image:url('${imgSrc(p)}')"></div>
+      <div class="meta">
+        <div class="cat">品牌 ${zone} · ${p.category || ""}</div>
+        <h3>${p.name}</h3>
+        <div class="row">
+          <span class="price">${money(p.price)}</span>
+          <button class="add" data-id="${p.id}" aria-label="加入">＋</button>
+        </div>
+      </div>
+    </article>`;
+}
+
+function fillGrid(el, list) {
+  if (!el) return;
+  if (!list.length) {
+    el.innerHTML = '<p class="hint">此區尚無商品</p>';
+    return;
+  }
+  el.innerHTML = list.map(cardHtml).join("");
+  el.querySelectorAll(".add").forEach((b) => {
+    b.onclick = (e) => { e.stopPropagation(); add(b.dataset.id); };
+  });
+  el.querySelectorAll(".card").forEach((card, i) => {
+    card.onclick = () => add(list[i].id);
+  });
+}
+
 function renderFilters() {
-  const cats = ["全部", ...new Set(state.products.map((p) => p.category).filter(Boolean))];
-  $("filters").innerHTML = cats.map((c) =>
+  const opts = ["全部", "品牌 A", "品牌 B", "品牌 C", "精選"];
+  $("filters").innerHTML = opts.map((c) =>
     `<button class="chip ${c === state.filter ? "on" : ""}" data-c="${c}">${c}</button>`
   ).join("");
   $("filters").querySelectorAll("button").forEach((b) => {
@@ -83,29 +119,27 @@ function renderFilters() {
 
 function render() {
   renderFilters();
-  const list = state.filter === "全部"
-    ? state.products
-    : state.products.filter((p) => p.category === state.filter);
-  $("countLabel").textContent = list.length + " ITEMS";
-  $("grid").innerHTML = list.map((p) => `
-    <article class="card">
-      <div class="pic" style="background-image:url('${imgSrc(p)}')"></div>
-      <div class="meta">
-        <div class="cat">${p.category || "NEW"} · ${p.name_kr || ""}</div>
-        <h3>${p.name}</h3>
-        <div class="row">
-          <span class="price">${money(p.price)}</span>
-          <button class="add" data-id="${p.id}" aria-label="加入">＋</button>
-        </div>
-      </div>
-    </article>`).join("");
-  $("grid").querySelectorAll(".add").forEach((b) => {
-    b.onclick = (e) => { e.stopPropagation(); add(b.dataset.id); };
-  });
-  $("grid").querySelectorAll(".card").forEach((card, i) => {
-    const p = list[i];
-    card.onclick = () => add(p.id);
-  });
+  const a = state.products.filter((p) => brandOf(p) === "A");
+  const b = state.products.filter((p) => brandOf(p) === "B");
+  const c = state.products.filter((p) => brandOf(p) === "C");
+  const pick = state.products.filter((p) => brandOf(p) === "精選");
+  $("countLabel").textContent = state.products.length + " ITEMS";
+  const show = (id, on) => { const n = $(id); if (n) n.style.display = on ? "" : "none"; };
+  if (state.filter === "品牌 A") {
+    show("zone-A", true); show("zone-B", false); show("zone-C", false); show("zone-pick", false);
+  } else if (state.filter === "品牌 B") {
+    show("zone-A", false); show("zone-B", true); show("zone-C", false); show("zone-pick", false);
+  } else if (state.filter === "品牌 C") {
+    show("zone-A", false); show("zone-B", false); show("zone-C", true); show("zone-pick", false);
+  } else if (state.filter === "精選") {
+    show("zone-A", false); show("zone-B", false); show("zone-C", false); show("zone-pick", true);
+  } else {
+    show("zone-A", true); show("zone-B", true); show("zone-C", true); show("zone-pick", true);
+  }
+  fillGrid($("grid-A"), a);
+  fillGrid($("grid-B"), b);
+  fillGrid($("grid-C"), c);
+  fillGrid($("grid-pick"), pick);
 }
 
 async function checkout() {
