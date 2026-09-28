@@ -362,25 +362,35 @@ class Handler(http.server.BaseHTTPRequestHandler):
             )
             return
 
-        # static / pages
+        # static / pages（相容 GitHub 把 css/js/images 放在根目錄或 public/）
+        def resolve_static(*rel_parts):
+            candidates = [
+                os.path.normpath(os.path.join(PUBLIC, *rel_parts)),
+                os.path.normpath(os.path.join(ROOT, *rel_parts)),
+            ]
+            for cand in candidates:
+                if os.path.isfile(cand) and (cand.startswith(PUBLIC) or cand.startswith(ROOT)):
+                    return cand
+            return None
+
         if path in ("/", "/index.html"):
-            self.send_file(os.path.join(PUBLIC, "index.html"))
-            return
-        if path in ("/admin", "/admin/", "/admin.html"):
-            self.send_file(os.path.join(PUBLIC, "admin.html"))
-            return
-        if path.startswith("/images/") or path.startswith("/uploads/") or path.startswith("/css/") or path.startswith("/js/"):
-            rel = path.lstrip("/")
-            full = os.path.normpath(os.path.join(PUBLIC, rel))
-            if not full.startswith(PUBLIC):
-                self.send_error(403)
+            found = resolve_static("index.html")
+            if found:
+                self.send_file(found)
                 return
-            self.send_file(full)
-            return
-        # fallback try public
-        full = os.path.normpath(os.path.join(PUBLIC, path.lstrip("/")))
-        if full.startswith(PUBLIC) and os.path.isfile(full):
-            self.send_file(full)
+        if path in ("/admin", "/admin/", "/admin.html"):
+            found = resolve_static("admin.html")
+            if found:
+                self.send_file(found)
+                return
+        if path.startswith("/images/") or path.startswith("/uploads/") or path.startswith("/css/") or path.startswith("/js/"):
+            found = resolve_static(path.lstrip("/"))
+            if found:
+                self.send_file(found)
+                return
+        found = resolve_static(path.lstrip("/"))
+        if found:
+            self.send_file(found)
             return
         self.send_error(404, "Not Found")
 
