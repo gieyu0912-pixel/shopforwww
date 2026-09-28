@@ -1,0 +1,99 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>後台｜SEOUL closet</title>
+  <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@500&display=swap" rel="stylesheet" />
+  <link rel="stylesheet" href="/css/style.css" />
+</head>
+<body class="admin-body">
+  <div id="loginView" class="login-wrap">
+    <div class="login-card">
+      <div class="kicker">BACK OFFICE</div>
+      <h1>韓選衣櫥後台</h1>
+      <p class="sub">業主登入後可批次上圖、依序出貨。</p>
+      <div class="field">
+        <label>帳號</label>
+        <input id="user" value="admin" autocomplete="username" />
+      </div>
+      <div class="field">
+        <label>密碼</label>
+        <input id="pass" type="password" autocomplete="current-password" />
+      </div>
+      <div class="err" id="loginErr"></div>
+      <button class="primary" id="loginBtn">進入後台</button>
+      <p class="hint">預設帳號 admin。系統每 90 天提醒更換密碼。</p>
+    </div>
+  </div>
+
+  <div id="appView" class="admin-shell" style="display:none">
+    <aside class="side">
+      <div class="brand">
+        <span class="en">SEOUL closet</span>
+        <span class="zh">業主後台</span>
+      </div>
+      <nav>
+        <button class="on" data-tab="orders">依序出貨</button>
+        <button data-tab="upload">批次上圖</button>
+        <button data-tab="password">更改密碼</button>
+        <button id="logout">登出</button>
+        <a href="/" style="color:#c4a484;padding:10px 12px;font-size:13px;">查看前台</a>
+      </nav>
+    </aside>
+    <main class="main">
+      <div class="alert" id="pwAlert" style="display:none"></div>
+      <div class="kpis">
+        <div class="kpi"><b id="kPending">0</b><span>待出貨</span></div>
+        <div class="kpi"><b id="kShipped">0</b><span>已出貨</span></div>
+        <div class="kpi"><b id="kProducts">0</b><span>前台商品數</span></div>
+        <div class="kpi"><b id="kRev">0</b><span>累計金額</span></div>
+      </div>
+
+      <section class="section on" id="tab-orders">
+        <div class="sec-head"><h2>訂單隊列</h2><span>由舊到新，依序出貨</span></div>
+        <div style="overflow:auto">
+          <table>
+            <thead>
+              <tr>
+                <th>#</th><th>時間</th><th>姓名</th><th>手機</th><th>7-11 門市</th><th>商品</th><th>金額</th><th>狀態</th><th></th>
+              </tr>
+            </thead>
+            <tbody id="orderBody"></tbody>
+          </table>
+        </div>
+      </section>
+
+      <section class="section" id="tab-upload">
+        <div class="sec-head"><h2>一次上傳最多 30 張</h2><span>選圖 → 逐張填價格 → 一次送出。舊商品不會改。</span></div>
+        <div class="drop" id="drop">
+          把衣服照片拖到這裡，或
+          <label style="color:#1c1916;cursor:pointer;border-bottom:1px solid #1c1916">
+            選擇檔案
+            <input id="files" type="file" accept="image/*" multiple hidden />
+          </label>
+          <div id="fileHint" class="hint">尚未選擇</div>
+        </div>
+        <div id="priceStep" style="display:none;margin-top:20px">
+          <div class="sec-head"><h2>為每張圖輸入售價</h2><span>單位：新台幣，全部填完再送出</span></div>
+          <div id="priceList"></div>
+          <button class="primary" id="uploadBtn" style="margin-top:16px;max-width:280px">全部送出上架</button>
+        </div>
+        <p class="hint" id="uploadMsg"></p>
+      </section>
+
+      <section class="section" id="tab-password">
+        <div class="sec-head"><h2>更改密碼</h2><span>建議每 3 個月更換一次</span></div>
+        <div class="login-card" style="padding:0;border:0;background:transparent;max-width:420px">
+          <div class="field"><label>目前密碼</label><input id="oldPw" type="password" /></div>
+          <div class="field"><label>新密碼（至少 8 碼）</label><input id="newPw" type="password" /></div>
+          <div class="field"><label>再輸入一次</label><input id="newPw2" type="password" /></div>
+          <div class="err" id="pwErr"></div>
+          <button class="primary" id="pwBtn">儲存新密碼</button>
+        </div>
+      </section>
+    </main>
+  </div>
+  <script src="/js/admin.js"></script>
+</body>
+</html>

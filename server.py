@@ -524,6 +524,7 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 self.send_json({"ok": False, "error": "請選擇圖片（欄位名稱 images）"}, 400)
                 return
 
+            raw_prices = fields.get("prices") or []
             created = []
             conn = db()
             now = datetime.now().isoformat(timespec="seconds")
@@ -544,7 +545,14 @@ class Handler(http.server.BaseHTTPRequestHandler):
                     continue
                 base = os.path.splitext(os.path.basename(raw))[0]
                 name = (base[:40] if base else "韓系單品 %s" % datetime.now().strftime("%m%d"))
-                price = 890 + (idx % 9) * 100
+                price = 890
+                if idx < len(raw_prices):
+                    try:
+                        price = int(float(str(raw_prices[idx]).strip()))
+                    except Exception:
+                        price = 890
+                if price < 1:
+                    price = 890
                 cat = "新品"
                 conn.execute(
                     "INSERT INTO products(name,name_kr,category,price,image,stock,created_at) VALUES(?,?,?,?,?,?,?)",
