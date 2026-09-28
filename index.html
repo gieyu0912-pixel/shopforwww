@@ -31,7 +31,32 @@
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link rel="preconnect" href="https://www.googletagmanager.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;500;600&display=swap" rel="stylesheet" />
-  <link rel="stylesheet" href="/css/style.css?v=5" />
+  <link rel="stylesheet" href="/css/style.css?v=6" />
+  <style>
+    :root {
+      --bg: #FFF7E9 !important;
+      --paper: #ffffff !important;
+      --ink: #16324f !important;
+      --muted: #4a6a82 !important;
+      --line: #d7e8f0 !important;
+      --camel: #4FD0E6 !important;
+      --camel-d: #0068A8 !important;
+      --blush: #F5C76B !important;
+    }
+    html, body { background: #FFF7E9 !important; color: #16324f !important; }
+    .topbar { background: rgba(255,247,233,.94) !important; }
+    .kicker { color: #0068A8 !important; }
+    .cta, .primary, .cart-btn:hover {
+      background: #0068A8 !important; color: #fff !important; border-color: #0068A8 !important;
+    }
+    .price, .prose h2, .addr { color: #0068A8 !important; }
+    .brand .en { letter-spacing: .06em !important; text-transform: none !important; font-size: 16px !important; }
+    .brand .zh { letter-spacing: .08em !important; }
+    @media (max-width: 860px) {
+      .topbar { flex-wrap: wrap; gap: 10px; padding: 12px 14px !important; }
+      .nav { flex-wrap: wrap; gap: 10px !important; letter-spacing: 0 !important; }
+    }
+  </style>
 
   <script type="application/ld+json">
   {
