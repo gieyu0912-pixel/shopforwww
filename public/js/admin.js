@@ -134,14 +134,34 @@ function preview(files) {
         <div class="fn">${f.name}</div>
         <div class="hint">第 ${i + 1} 件</div>
       </div>
-      <div class="field" style="margin:0">
-        <label>售價 NT$</label>
-        <input class="price-input" type="number" min="1" step="1" inputmode="numeric" placeholder="例如 1280" required />
+      <div>
+        <div class="field" style="margin:0 0 8px">
+          <label>售價 NT$</label>
+          <input class="price-input" type="number" min="1" step="1" inputmode="numeric" placeholder="例如 1280" required />
+        </div>
+        <div class="field" style="margin:0">
+          <label>品牌</label>
+          <select class="brand-input">
+            <option value="A">品牌 A</option>
+            <option value="B">品牌 B</option>
+            <option value="C">品牌 C</option>
+          </select>
+        </div>
       </div>`;
     box.appendChild(row);
   });
-  $("priceStep").scrollIntoView({ behavior: "smooth", block: "start" });
+  if ($("priceStep")) $("priceStep").scrollIntoView({ behavior: "smooth", block: "start" });
+  const batch = $("batchBrand");
+  if (batch) {
+    document.querySelectorAll(".brand-input").forEach((sel) => { sel.value = batch.value; });
+  }
 }
+
+document.addEventListener("change", (e) => {
+  if (e.target && e.target.id === "batchBrand") {
+    document.querySelectorAll(".brand-input").forEach((sel) => { sel.value = e.target.value; });
+  }
+});
 
 $("files").onchange = (e) => preview(e.target.files);
 ["dragenter", "dragover"].forEach((ev) => {
@@ -166,6 +186,8 @@ $("uploadBtn").onclick = async () => {
   const fd = new FormData();
   picked.forEach((f) => fd.append("images", f));
   prices.forEach((n) => fd.append("prices", String(Math.round(n))));
+  document.querySelectorAll(".brand-input").forEach((sel) => fd.append("brands", sel.value || "A"));
+  if ($("batchBrand")) fd.append("brand", $("batchBrand").value || "A");
   $("uploadBtn").disabled = true;
   $("uploadMsg").textContent = "上傳中…";
   try {
