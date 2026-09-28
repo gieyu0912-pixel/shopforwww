@@ -92,6 +92,7 @@ def init_db():
             price INTEGER NOT NULL,
             image TEXT,
             stock INTEGER DEFAULT 20,
+            brand TEXT DEFAULT '精選',
             created_at TEXT
         );
         CREATE TABLE IF NOT EXISTS orders (
@@ -111,6 +112,10 @@ def init_db():
         );
         """
     )
+    try:
+        c.execute("ALTER TABLE products ADD COLUMN brand TEXT DEFAULT '精選'")
+    except Exception:
+        pass
     row = c.execute("SELECT value FROM settings WHERE key='password'").fetchone()
     if not row:
         now = datetime.now().strftime("%Y-%m-%d")
@@ -135,8 +140,8 @@ def init_db():
             price = base[3] + (i % 5) * 50
             img = all_imgs[i % len(all_imgs)]
             c.execute(
-                "INSERT INTO products(name,name_kr,category,price,image,stock,created_at) VALUES(?,?,?,?,?,?,?)",
-                (name, base[0], base[2], price, img, 20 + (i % 8), now),
+                "INSERT INTO products(name,name_kr,category,price,image,stock,brand,created_at) VALUES(?,?,?,?,?,?,?,?)",
+                (name, base[0], base[2], price, img, 20 + (i % 8), "精選", now),
             )
     conn.commit()
     conn.close()
@@ -525,6 +530,10 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return
 
             raw_prices = fields.get("prices") or []
+            raw_brands = fields.get("brands") or []
+            batch_brand = ""
+            if fields.get("brand"):
+                batch_brand = str((fields.get("brand") or [""])[0]).strip().upper()
             created = []
             conn = db()
             now = datetime.now().isoformat(timespec="seconds")
@@ -553,12 +562,19 @@ class Handler(http.server.BaseHTTPRequestHandler):
                         price = 890
                 if price < 1:
                     price = 890
+                brand = "A"
+                if idx < len(raw_brands) and str(raw_brands[idx]).strip():
+                    brand = str(raw_brands[idx]).strip().upper()
+                elif batch_brand:
+                    brand = batch_brand
+                if brand not in ("A", "B", "C"):
+                    brand = "A"
                 cat = "新品"
                 conn.execute(
-                    "INSERT INTO products(name,name_kr,category,price,image,stock,created_at) VALUES(?,?,?,?,?,?,?)",
-                    (name, "신상", cat, price, "uploads/" + fname, 20, now),
+                    "INSERT INTO products(name,name_kr,category,price,image,stock,brand,created_at) VALUES(?,?,?,?,?,?,?,?)",
+                    (name, "신상", cat, price, "uploads/" + fname, 20, brand, now),
                 )
-                created.append({"name": name, "image": "uploads/" + fname, "price": price})
+                created.append({"name": name, "image": "uploads/" + fname, "price": price, "brand": brand})
             conn.commit()
             conn.close()
             self.send_json({"ok": True, "added": len(created), "products": created})

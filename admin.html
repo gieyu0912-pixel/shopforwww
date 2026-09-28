@@ -76,7 +76,15 @@
         </div>
         <div id="thumbs" class="thumbs"></div>
         <div id="priceStep" style="margin-top:20px">
-          <div class="sec-head"><h2>為每張圖輸入售價</h2><span>選圖後會出現在這裡，全部填完再送出</span></div>
+          <div class="sec-head"><h2>售價與品牌</h2><span>每張選 A／B／C，會進前台對應區域</span></div>
+          <div class="field" style="max-width:280px">
+            <label>這批全部套用品牌</label>
+            <select id="batchBrand">
+              <option value="A">品牌 A</option>
+              <option value="B">品牌 B</option>
+              <option value="C">品牌 C</option>
+            </select>
+          </div>
           <div id="priceList"></div>
           <button class="primary" id="uploadBtn" style="margin-top:16px;max-width:280px">全部送出上架</button>
         </div>
@@ -95,6 +103,6 @@
       </section>
     </main>
   </div>
-  <script src="/js/admin.js?v=2"></script>
+  <script src="/js/admin.js?v=3"></script>
 </body>
 </html>
