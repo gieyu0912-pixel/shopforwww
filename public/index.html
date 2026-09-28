@@ -3,29 +3,21 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>www 恣意風尚 - SEOUL closet｜韓選衣櫥</title>
+  <title>SEOUL closet｜韓選衣櫥</title>
   <link rel="preconnect" href="https://fonts.googleapis.com" />
   <link href="https://fonts.googleapis.com/css2?family=Noto+Sans+TC:wght@400;500&family=Noto+Serif+TC:wght@400;500;600&display=swap" rel="stylesheet" />
   <link rel="stylesheet" href="/css/style.css" />
 </head>
 <body>
-  <!-- GA4 -->
-<script async src="https://www.googletagmanager.com/gtag/js?id=G-S4TT0CTS00"></script>
-<script>
-window.dataLayer=window.dataLayer||[];
-function gtag(){dataLayer.push(arguments);}
-gtag('js',new Date());
-gtag('config','G-S4TT0CTS00');
-</script>
   <header class="topbar">
     <a class="brand" href="/">
-      <span class="en">www 恣意風尚 - SEOUL closet</span>
+      <span class="en">SEOUL closet</span>
       <span class="zh">韓選衣櫥</span>
     </a>
     <nav class="nav">
-      <a href="#shop">新品</a>
-      <a href="#shop">針織</a>
-      <a href="#shop">外套</a>
+      <a href="#zone-A">品牌 A</a>
+      <a href="#zone-B">品牌 B</a>
+      <a href="#zone-C">品牌 C</a>
       <a href="/admin">後台</a>
       <button class="cart-btn" id="openCart">BAG <span id="cartCount">0</span></button>
     </nav>
@@ -33,7 +25,7 @@ gtag('config','G-S4TT0CTS00');
 
   <section class="hero">
     <div class="hero-copy">
-      <div class="kicker">www 恣意風尚 - SEOUL · Taoyuan/TAIPEI</div>
+      <div class="kicker">SEOUL · TAIPEI</div>
       <h1>把首爾街頭<br/>帶回衣櫥。</h1>
       <p class="sans">精選韓系剪裁與日常可穿的色調。線上選件後填寫姓名、手機與 7-11 門市，我們依序出貨到店取貨。</p>
       <a class="cta" href="#shop">開始逛衣櫥</a>
@@ -44,10 +36,25 @@ gtag('config','G-S4TT0CTS00');
   <main class="wrap" id="shop">
     <div class="sec-head">
       <h2>本季衣櫥</h2>
-      <span id="countLabel">50 ITEMS</span>
+      <span id="countLabel">ITEMS</span>
     </div>
     <div class="filters" id="filters"></div>
-    <div class="grid" id="grid"></div>
+    <section class="brand-zone" id="zone-A">
+      <div class="sec-head"><h2>品牌 A</h2><span>ZONE A</span></div>
+      <div class="grid" id="grid-A"></div>
+    </section>
+    <section class="brand-zone" id="zone-B">
+      <div class="sec-head"><h2>品牌 B</h2><span>ZONE B</span></div>
+      <div class="grid" id="grid-B"></div>
+    </section>
+    <section class="brand-zone" id="zone-C">
+      <div class="sec-head"><h2>品牌 C</h2><span>ZONE C</span></div>
+      <div class="grid" id="grid-C"></div>
+    </section>
+    <section class="brand-zone" id="zone-pick">
+      <div class="sec-head"><h2>精選</h2><span>既有商品</span></div>
+      <div class="grid" id="grid-pick"></div>
+    </section>
   </main>
 
   <div class="drawer" id="drawer">
@@ -77,6 +84,6 @@ gtag('config','G-S4TT0CTS00');
   </div>
 
   <footer>SEOUL closet｜韓選衣櫥　·　7-11 門市取貨　·　後台 /admin</footer>
-  <script src="/js/shop.js"></script>
+  <script src="/js/shop.js?v=3"></script>
 </body>
 </html>
