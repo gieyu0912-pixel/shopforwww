@@ -119,14 +119,12 @@ document.querySelectorAll(".side button[data-tab]").forEach((b) => {
 
 function preview(files) {
   picked = Array.from(files).slice(0, 30);
-  $("fileHint").textContent = `已選 ${picked.length} 張（上限 30）。請向下填價格。`;
+  if ($("fileHint")) $("fileHint").textContent = `已選 ${picked.length} 張（上限 30）。請向下填價格。`;
   const box = $("priceList");
+  if (!box) return;
   box.innerHTML = "";
-  if (!picked.length) {
-    $("priceStep").style.display = "none";
-    return;
-  }
-  $("priceStep").style.display = "block";
+  if (!picked.length) return;
+  if ($("priceStep")) $("priceStep").style.display = "block";
   picked.forEach((f, i) => {
     const row = document.createElement("div");
     row.className = "price-row";
