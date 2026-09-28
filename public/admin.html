@@ -65,7 +65,7 @@
       </section>
 
       <section class="section" id="tab-upload">
-        <div class="sec-head"><h2>一次上傳最多 30 張</h2><span>每張圖自動新增一筆前台商品</span></div>
+        <div class="sec-head"><h2>一次上傳最多 30 張</h2><span>選圖 → 逐張填價格 → 一次送出。舊商品不會改。</span></div>
         <div class="drop" id="drop">
           把衣服照片拖到這裡，或
           <label style="color:#1c1916;cursor:pointer;border-bottom:1px solid #1c1916">
@@ -74,8 +74,11 @@
           </label>
           <div id="fileHint" class="hint">尚未選擇</div>
         </div>
-        <div class="thumbs" id="thumbs"></div>
-        <button class="primary" id="uploadBtn" style="margin-top:16px;max-width:280px">上傳並上架</button>
+        <div id="priceStep" style="display:none;margin-top:20px">
+          <div class="sec-head"><h2>為每張圖輸入售價</h2><span>單位：新台幣，全部填完再送出</span></div>
+          <div id="priceList"></div>
+          <button class="primary" id="uploadBtn" style="margin-top:16px;max-width:280px">全部送出上架</button>
+        </div>
         <p class="hint" id="uploadMsg"></p>
       </section>
 
