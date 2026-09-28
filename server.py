@@ -1,20 +1,18 @@
 #!/usr/bin/env python3
 # -*- coding: utf-8 -*-
 """SEOUL closet｜韓選衣櫥 — 韓式服裝電商（Python 標準庫）"""
-import cgi
 import hashlib
 import http.cookies
 import http.server
-import io
 import json
 import os
-import random
 import secrets
 import sqlite3
 import time
 import urllib.parse
 from datetime import datetime, timedelta
-from functools import partial
+from email.parser import BytesParser
+from email.policy import default as email_policy
 
 ROOT = os.path.dirname(os.path.abspath(__file__))
 PUBLIC = os.path.join(ROOT, "public")
@@ -156,6 +154,33 @@ def set_setting(key, value):
     conn.execute("INSERT OR REPLACE INTO settings(key,value) VALUES(?,?)", (key, value))
     conn.commit()
     conn.close()
+
+
+def parse_multipart(body, content_type):
+    """Parse multipart/form-data without the removed cgi module (Python 3.13+)."""
+    fields = {}
+    files = []
+    if not body or "multipart/form-data" not in (content_type or ""):
+        return fields, files
+    header = ("Content-Type: %s\r\nMIME-Version: 1.0\r\n\r\n" % content_type).encode("utf-8")
+    msg = BytesParser(policy=email_policy).parsebytes(header + body)
+    parts = list(msg.iter_parts()) or ([msg] if msg.get_content_disposition() else [])
+    for part in parts:
+        disp = part.get_content_disposition()
+        name = part.get_param("name", header="content-disposition")
+        filename = part.get_filename()
+        payload = part.get_payload(decode=True)
+        if payload is None:
+            payload = b""
+        if filename:
+            files.append({"field": name or "images", "filename": filename, "data": payload})
+        elif name:
+            fields.setdefault(name, [])
+            try:
+                fields[name].append(payload.decode("utf-8"))
+            except Exception:
+                fields[name].append("")
+    return fields, files
 
 
 def password_due():
@@ -476,36 +501,27 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if not self.is_admin():
                 self.send_json({"ok": False, "error": "未登入"}, 401)
                 return
-            env = {
-                "REQUEST_METHOD": "POST",
-                "CONTENT_TYPE": self.headers.get("Content-Type", ""),
-                "CONTENT_LENGTH": self.headers.get("Content-Length", "0"),
-            }
+            n = int(self.headers.get("Content-Length", 0) or 0)
+            body = self.rfile.read(n) if n else b""
             try:
-                form = cgi.FieldStorage(fp=self.rfile, headers=self.headers, environ=env, keep_blank_values=True)
+                fields, files = parse_multipart(body, self.headers.get("Content-Type", ""))
             except Exception as e:
                 self.send_json({"ok": False, "error": "無法解析上傳檔案: %s" % e}, 400)
                 return
 
-            files = form["images"] if "images" in form else None
-            if files is None:
+            files = [f for f in files if (f.get("field") or "images") == "images" or f.get("filename")]
+            if not files:
                 self.send_json({"ok": False, "error": "請選擇圖片（欄位名稱 images）"}, 400)
                 return
-            if not isinstance(files, list):
-                files = [files]
-
-            names = form.getvalue("names")
-            prices = form.getvalue("prices")
-            cats = form.getvalue("categories")
 
             created = []
             conn = db()
             now = datetime.now().isoformat(timespec="seconds")
             max_files = 30
             for idx, f in enumerate(files[:max_files]):
-                if not getattr(f, "filename", None):
+                raw = f.get("filename") or ""
+                if not raw:
                     continue
-                raw = f.filename
                 ext = os.path.splitext(raw)[1].lower()
                 if ext not in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
                     continue
@@ -513,19 +529,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 dest = os.path.join(UPLOADS, fname)
                 try:
                     with open(dest, "wb") as out:
-                        out.write(f.file.read())
+                        out.write(f.get("data") or b"")
                 except Exception:
                     continue
-                # auto product
-                name = "韓系單品 %s" % datetime.now().strftime("%m%d")
-                if isinstance(names, list) and idx < len(names) and names[idx]:
-                    name = str(names[idx])
-                elif isinstance(names, str) and names:
-                    name = names
-                else:
-                    base = os.path.splitext(os.path.basename(raw))[0]
-                    if base:
-                        name = base[:40]
+                base = os.path.splitext(os.path.basename(raw))[0]
+                name = (base[:40] if base else "韓系單品 %s" % datetime.now().strftime("%m%d"))
                 price = 890 + (idx % 9) * 100
                 cat = "新品"
                 conn.execute(
