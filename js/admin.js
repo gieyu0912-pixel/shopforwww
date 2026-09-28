@@ -119,13 +119,30 @@ document.querySelectorAll(".side button[data-tab]").forEach((b) => {
 
 function preview(files) {
   picked = Array.from(files).slice(0, 30);
-  $("fileHint").textContent = `已選 ${picked.length} 張（上限 30）`;
-  $("thumbs").innerHTML = "";
-  picked.forEach((f) => {
-    const img = document.createElement("img");
-    img.src = URL.createObjectURL(f);
-    $("thumbs").appendChild(img);
+  $("fileHint").textContent = `已選 ${picked.length} 張（上限 30）。請向下填價格。`;
+  const box = $("priceList");
+  box.innerHTML = "";
+  if (!picked.length) {
+    $("priceStep").style.display = "none";
+    return;
+  }
+  $("priceStep").style.display = "block";
+  picked.forEach((f, i) => {
+    const row = document.createElement("div");
+    row.className = "price-row";
+    row.innerHTML = `
+      <img src="${URL.createObjectURL(f)}" alt="" />
+      <div>
+        <div class="fn">${f.name}</div>
+        <div class="hint">第 ${i + 1} 件</div>
+      </div>
+      <div class="field" style="margin:0">
+        <label>售價 NT$</label>
+        <input class="price-input" type="number" min="1" step="1" inputmode="numeric" placeholder="例如 1280" required />
+      </div>`;
+    box.appendChild(row);
   });
+  $("priceStep").scrollIntoView({ behavior: "smooth", block: "start" });
 }
 
 $("files").onchange = (e) => preview(e.target.files);
@@ -142,8 +159,15 @@ $("uploadBtn").onclick = async () => {
     $("uploadMsg").textContent = "請先選擇圖片";
     return;
   }
+  const inputs = Array.from(document.querySelectorAll(".price-input"));
+  const prices = inputs.map((el) => Number(el.value));
+  if (prices.some((n) => !Number.isFinite(n) || n < 1)) {
+    $("uploadMsg").textContent = "請為每一張圖填寫大於 0 的售價後再送出";
+    return;
+  }
   const fd = new FormData();
   picked.forEach((f) => fd.append("images", f));
+  prices.forEach((n) => fd.append("prices", String(Math.round(n))));
   $("uploadBtn").disabled = true;
   $("uploadMsg").textContent = "上傳中…";
   try {
@@ -152,9 +176,10 @@ $("uploadBtn").onclick = async () => {
     if (!data.ok) {
       $("uploadMsg").textContent = data.error || "上傳失敗";
     } else {
-      $("uploadMsg").textContent = `已新增 ${data.added} 件商品到前台。`;
+      $("uploadMsg").textContent = `已新增 ${data.added} 件商品到前台（舊商品未改動）。`;
       picked = [];
-      $("thumbs").innerHTML = "";
+      $("priceList").innerHTML = "";
+      $("priceStep").style.display = "none";
       $("files").value = "";
       $("fileHint").textContent = "尚未選擇";
       refresh();
