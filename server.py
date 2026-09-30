@@ -197,7 +197,6 @@ def parse_multipart(body, content_type):
     msg = BytesParser(policy=email_policy).parsebytes(header + body)
     parts = list(msg.iter_parts()) or ([msg] if msg.get_content_disposition() else [])
     for part in parts:
-        disp = part.get_content_disposition()
         name = part.get_param("name", header="content-disposition")
         filename = part.get_filename()
         payload = part.get_payload(decode=True)
@@ -209,6 +208,36 @@ def parse_multipart(body, content_type):
             fields.setdefault(name, [])
             try:
                 fields[name].append(payload.decode("utf-8"))
+            except Exception:
+                fields[name].append("")
+    if files:
+        return fields, files
+    # fallback: raw boundary split（手機瀏覽器偶發解析不到檔名）
+    import re
+    m = re.search(r"boundary=([^;]+)", content_type or "", re.I)
+    if not m:
+        return fields, files
+    boundary = m.group(1).strip().strip('"')
+    sep = b"--" + boundary.encode("utf-8", "ignore")
+    for chunk in body.split(sep):
+        if b"\r\n\r\n" not in chunk:
+            continue
+        head, data = chunk.split(b"\r\n\r\n", 1)
+        if data.endswith(b"\r\n"):
+            data = data[:-2]
+        if data.endswith(b"--"):
+            data = data[:-2]
+        header_txt = head.decode("utf-8", "replace")
+        name_m = re.search(r'name="([^"]+)"', header_txt)
+        fn_m = re.search(r'filename="([^"]*)"', header_txt)
+        name = name_m.group(1) if name_m else ""
+        filename = fn_m.group(1) if fn_m else ""
+        if filename:
+            files.append({"field": name or "images", "filename": filename, "data": data})
+        elif name:
+            fields.setdefault(name, [])
+            try:
+                fields[name].append(data.decode("utf-8"))
             except Exception:
                 fields[name].append("")
     return fields, files

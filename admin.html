@@ -112,9 +112,16 @@
             <textarea id="artBody" rows="8" placeholder="穿搭說明、流行重點或新聞整理" style="width:100%;min-height:160px;padding:10px 12px;border:1px solid var(--line);font-size:15px"></textarea>
           </div>
           <div class="field">
-            <label>相關圖片（最多 3 張）</label>
-            <input id="artImgs" type="file" accept="image/*" multiple />
-            <div class="hint" id="artImgHint">尚未選圖</div>
+            <label>相關圖片 1</label>
+            <input id="artImg1" type="file" accept="image/*" />
+          </div>
+          <div class="field">
+            <label>相關圖片 2</label>
+            <input id="artImg2" type="file" accept="image/*" />
+          </div>
+          <div class="field">
+            <label>相關圖片 3</label>
+            <input id="artImg3" type="file" accept="image/*" />
           </div>
           <div class="err" id="artMsg"></div>
           <button class="primary" id="artBtn">送出並上架穿搭誌</button>
@@ -135,6 +142,6 @@
       </section>
     </main>
   </div>
-  <script src="/js/admin.js?v=4"></script>
+  <script src="/js/admin.js?v=5"></script>
 </body>
 </html>
