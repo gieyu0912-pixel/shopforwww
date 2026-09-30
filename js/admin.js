@@ -255,27 +255,40 @@ refresh = async function () {
   await loadArts();
 };
 
+if ($("artImgs")) {
+  $("artImgs").onchange = () => {
+    const n = Math.min(($("artImgs").files || []).length, 3);
+    $("artImgHint").textContent = n ? `已選 ${n} 張（上限 3）` : "尚未選圖";
+  };
+}
 if ($("artBtn")) {
   $("artBtn").onclick = async () => {
     $("artMsg").textContent = "";
-    const { data } = await api("/api/admin/articles", {
-      method: "POST",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({
-        title: $("artTitle").value,
-        body: $("artBody").value,
-        category: $("artCat").value,
-      }),
-    });
-    if (!data.ok) {
-      $("artMsg").textContent = data.error || "送出失敗";
-      return;
+    const fd = new FormData();
+    fd.append("title", $("artTitle").value);
+    fd.append("body", $("artBody").value);
+    fd.append("category", $("artCat").value);
+    Array.from($("artImgs").files || []).slice(0, 3).forEach((f) => fd.append("images", f));
+    $("artBtn").disabled = true;
+    try {
+      const res = await fetch("/api/admin/articles", { method: "POST", body: fd, credentials: "same-origin" });
+      const data = await res.json();
+      if (!data.ok) {
+        $("artMsg").textContent = data.error || "送出失敗";
+        return;
+      }
+      $("artMsg").style.color = "#2f6b4f";
+      $("artMsg").textContent = `已上架（${data.created_at}）${(data.images||[]).length ? "，附圖 " + data.images.length + " 張" : ""}`;
+      $("artTitle").value = "";
+      $("artBody").value = "";
+      $("artImgs").value = "";
+      if ($("artImgHint")) $("artImgHint").textContent = "尚未選圖";
+      loadArts();
+    } catch {
+      $("artMsg").textContent = "送出發生錯誤";
+    } finally {
+      $("artBtn").disabled = false;
     }
-    $("artMsg").style.color = "#2f6b4f";
-    $("artMsg").textContent = `已上架（${data.created_at}）`;
-    $("artTitle").value = "";
-    $("artBody").value = "";
-    loadArts();
   };
 }
 
