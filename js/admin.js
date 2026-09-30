@@ -255,12 +255,6 @@ refresh = async function () {
   await loadArts();
 };
 
-if ($("artImgs")) {
-  $("artImgs").onchange = () => {
-    const n = Math.min(($("artImgs").files || []).length, 3);
-    $("artImgHint").textContent = n ? `已選 ${n} 張（上限 3）` : "尚未選圖";
-  };
-}
 if ($("artBtn")) {
   $("artBtn").onclick = async () => {
     $("artMsg").textContent = "";
@@ -268,7 +262,10 @@ if ($("artBtn")) {
     fd.append("title", $("artTitle").value);
     fd.append("body", $("artBody").value);
     fd.append("category", $("artCat").value);
-    Array.from($("artImgs").files || []).slice(0, 3).forEach((f) => fd.append("images", f));
+    ["artImg1", "artImg2", "artImg3"].forEach((id) => {
+      const el = $(id);
+      if (el && el.files && el.files[0]) fd.append("images", el.files[0]);
+    });
     $("artBtn").disabled = true;
     try {
       const res = await fetch("/api/admin/articles", { method: "POST", body: fd, credentials: "same-origin" });
@@ -281,8 +278,7 @@ if ($("artBtn")) {
       $("artMsg").textContent = `已上架（${data.created_at}）${(data.images||[]).length ? "，附圖 " + data.images.length + " 張" : ""}`;
       $("artTitle").value = "";
       $("artBody").value = "";
-      $("artImgs").value = "";
-      if ($("artImgHint")) $("artImgHint").textContent = "尚未選圖";
+      ["artImg1", "artImg2", "artImg3"].forEach((id) => { if ($(id)) $(id).value = ""; });
       loadArts();
     } catch {
       $("artMsg").textContent = "送出發生錯誤";
