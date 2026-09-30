@@ -146,13 +146,18 @@
       box.textContent = "尚無新文，以下為常駐趨勢與新聞整理。";
       return;
     }
-    box.innerHTML = d.articles.map(a =>
-      `<article class="news">
+    box.innerHTML = d.articles.map(a => {
+      const imgs = (a.images || []).slice(0, 3).map(src => {
+        const u = String(src).startsWith("/") ? src : "/" + src;
+        return `<img src="${u}" alt="" style="width:32%;aspect-ratio:3/4;object-fit:cover;background:#efe7dc" />`;
+      }).join("");
+      return `<article class="news">
         <time>${a.created_at} · ${a.category}</time>
         <h3>${a.title}</h3>
+        ${imgs ? `<div style="display:flex;gap:6px;margin:10px 0">${imgs}</div>` : ""}
         <p>${String(a.body||"").replace(/</g,"&lt;").replace(/\n/g,"<br/>")}</p>
-      </article>`
-    ).join("");
+      </article>`;
+    }).join("");
   }).catch(() => {
     document.getElementById("liveArts").textContent = "文章載入失敗";
   });
