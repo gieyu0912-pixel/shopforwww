@@ -115,12 +115,17 @@ def init_db():
             title TEXT NOT NULL,
             body TEXT NOT NULL,
             category TEXT NOT NULL,
-            created_at TEXT NOT NULL
+            created_at TEXT NOT NULL,
+            images TEXT DEFAULT '[]'
         );
         """
     )
     try:
         c.execute("ALTER TABLE products ADD COLUMN brand TEXT DEFAULT '精選'")
+    except Exception:
+        pass
+    try:
+        c.execute("ALTER TABLE articles ADD COLUMN images TEXT DEFAULT '[]'")
     except Exception:
         pass
     row = c.execute("SELECT value FROM settings WHERE key='password'").fetchone()
@@ -152,6 +157,20 @@ def init_db():
             )
     conn.commit()
     conn.close()
+
+
+def pack_article(row):
+    a = dict(row)
+    imgs = []
+    raw = a.get("images") or "[]"
+    try:
+        parsed = json.loads(raw) if isinstance(raw, str) else raw
+        if isinstance(parsed, list):
+            imgs = [str(x) for x in parsed if x][:3]
+    except Exception:
+        imgs = []
+    a["images"] = imgs
+    return a
 
 
 def get_setting(key, default=""):
@@ -366,15 +385,15 @@ class Handler(http.server.BaseHTTPRequestHandler):
             cat = (qs.get("category") or [""])[0]
             if cat in ("OOTD", "流行", "新聞"):
                 rows = conn.execute(
-                    "SELECT id,title,body,category,created_at FROM articles WHERE category=? ORDER BY id DESC",
+                    "SELECT id,title,body,category,created_at,images FROM articles WHERE category=? ORDER BY id DESC",
                     (cat,),
                 ).fetchall()
             else:
                 rows = conn.execute(
-                    "SELECT id,title,body,category,created_at FROM articles ORDER BY id DESC"
+                    "SELECT id,title,body,category,created_at,images FROM articles ORDER BY id DESC"
                 ).fetchall()
             conn.close()
-            self.send_json({"ok": True, "articles": [dict(r) for r in rows]})
+            self.send_json({"ok": True, "articles": [pack_article(r) for r in rows]})
             return
 
         if path.startswith("/api/articles/"):
@@ -385,13 +404,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return
             conn = db()
             row = conn.execute(
-                "SELECT id,title,body,category,created_at FROM articles WHERE id=?", (aid,)
+                "SELECT id,title,body,category,created_at,images FROM articles WHERE id=?", (aid,)
             ).fetchone()
             conn.close()
             if not row:
                 self.send_json({"ok": False}, 404)
                 return
-            self.send_json({"ok": True, "article": dict(row)})
+            self.send_json({"ok": True, "article": pack_article(row)})
             return
 
         if path == "/api/admin/stats":
@@ -631,10 +650,38 @@ class Handler(http.server.BaseHTTPRequestHandler):
             if not self.is_admin():
                 self.send_json({"ok": False, "error": "未登入"}, 401)
                 return
-            data = self.read_json()
-            title = (data.get("title") or "").strip()
-            body = (data.get("body") or "").strip()
-            category = (data.get("category") or "").strip()
+            ctype = self.headers.get("Content-Type", "")
+            title = body = category = ""
+            saved = []
+            if "multipart/form-data" in ctype:
+                n = int(self.headers.get("Content-Length", 0) or 0)
+                raw = self.rfile.read(n) if n else b""
+                try:
+                    fields, files = parse_multipart(raw, ctype)
+                except Exception as e:
+                    self.send_json({"ok": False, "error": "無法解析: %s" % e}, 400)
+                    return
+                title = str((fields.get("title") or [""])[0]).strip()
+                body = str((fields.get("body") or [""])[0]).strip()
+                category = str((fields.get("category") or [""])[0]).strip()
+                for f in files[:3]:
+                    fn = f.get("filename") or ""
+                    ext = os.path.splitext(fn)[1].lower()
+                    if ext not in (".jpg", ".jpeg", ".png", ".webp", ".gif"):
+                        continue
+                    fname = "a_%s_%s%s" % (int(time.time()), secrets.token_hex(3), ext)
+                    dest = os.path.join(UPLOADS, fname)
+                    try:
+                        with open(dest, "wb") as out:
+                            out.write(f.get("data") or b"")
+                        saved.append("uploads/" + fname)
+                    except Exception:
+                        continue
+            else:
+                data = self.read_json()
+                title = (data.get("title") or "").strip()
+                body = (data.get("body") or "").strip()
+                category = (data.get("category") or "").strip()
             if not title or not body:
                 self.send_json({"ok": False, "error": "請填標題與內容"}, 400)
                 return
@@ -643,13 +690,13 @@ class Handler(http.server.BaseHTTPRequestHandler):
             now = datetime.now().strftime("%Y-%m-%d %H:%M")
             conn = db()
             cur = conn.execute(
-                "INSERT INTO articles(title,body,category,created_at) VALUES(?,?,?,?)",
-                (title[:120], body[:8000], category, now),
+                "INSERT INTO articles(title,body,category,created_at,images) VALUES(?,?,?,?,?)",
+                (title[:120], body[:8000], category, now, json.dumps(saved, ensure_ascii=False)),
             )
             aid = cur.lastrowid
             conn.commit()
             conn.close()
-            self.send_json({"ok": True, "id": aid, "created_at": now, "category": category})
+            self.send_json({"ok": True, "id": aid, "created_at": now, "category": category, "images": saved})
             return
 
         self.send_error(404, "Not Found")

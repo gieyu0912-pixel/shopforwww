@@ -161,6 +161,11 @@
     <div class="hero-visual"></div>
   </section>
 
+  <div class="ticker" id="ticker">
+    <a href="/fashion">穿搭誌</a>
+    <div class="ticker-track" id="tickerTrack">載入近期文章…</div>
+  </div>
+
   <main class="wrap" id="shop">
     <div class="sec-head">
       <h2>本季韓系女裝精選</h2>
@@ -245,5 +250,16 @@
 
   <footer>Www恣意風尚｜330桃園市桃園區文化里中正路45號（桃園火車站前）｜7-11貨到付款／刷卡／宅配</footer>
   <script src="/js/shop.js?v=5"></script>
+  <script>
+  fetch("/api/articles").then(r => r.json()).then(d => {
+    const el = document.getElementById("tickerTrack");
+    if (!el) return;
+    const list = (d.articles || []).slice(0, 5);
+    if (!list.length) { el.textContent = "尚無新文，點左側進入穿搭誌。"; return; }
+    el.innerHTML = list.map(a =>
+      `<a href="/fashion">${a.created_at.slice(0,10)}｜${a.category}｜${a.title}</a>`
+    ).join("");
+  }).catch(() => {});
+  </script>
 </body>
 </html>
