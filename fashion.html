@@ -20,6 +20,9 @@
     .cta { background: #0068A8; color: #fff; }
     .looks { display: grid; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); gap: 18px; margin: 20px 0 36px; }
     .look { background: #fff; border: 1px solid #d7e8f0; }
+    .look.feature { max-width: 520px; }
+    .look.feature .pic { aspect-ratio: 3/4; }
+    .look.feature .cap img { width: 31%; aspect-ratio: 3/4; object-fit: cover; }
     .look .pic { aspect-ratio: 3/4; background-size: cover; background-position: center; }
     .look .cap { padding: 14px 14px 18px; font-family: "Noto Sans TC", sans-serif; }
     .look .cap b { display: block; margin-bottom: 6px; }
@@ -70,8 +73,13 @@
   </section>
 
   <main class="wrap">
+    <section class="prose" id="liveFeed">
+      <h2>店長最新發布</h2>
+      <p>後台發文會以大圖卡片呈現，與下方範例相同。</p>
+      <div id="liveArts" class="hint">載入中…</div>
+    </section>
     <section class="prose">
-      <h2>本週 OOTD</h2>
+      <h2>本週 OOTD 範例</h2>
       <p>三套可直接複製的韓系日常，適合桃園出門、上班與週末。</p>
     </section>
     <div class="looks">
@@ -97,12 +105,6 @@
         </div>
       </article>
     </div>
-
-    <section class="prose" id="liveFeed">
-      <h2>店長最新發布</h2>
-      <p>後台上架的 OOTD、流行與新聞會出現在這裡，並自動帶日期。</p>
-      <div id="liveArts" class="hint">載入中…</div>
-    </section>
 
     <section class="prose">
       <h2>近期流行服飾</h2>
@@ -146,18 +148,26 @@
       box.textContent = "尚無新文，以下為常駐趨勢與新聞整理。";
       return;
     }
-    box.innerHTML = d.articles.map(a => {
-      const imgs = (a.images || []).slice(0, 3).map(src => {
+    box.innerHTML = '<div class="looks">' + d.articles.map(a => {
+      const list = (a.images || []).slice(0, 3);
+      const hero = list[0] ? (String(list[0]).startsWith("/") ? list[0] : "/" + list[0]) : "";
+      const extra = list.slice(1).map(src => {
         const u = String(src).startsWith("/") ? src : "/" + src;
-        return `<img src="${u}" alt="" style="width:32%;aspect-ratio:3/4;object-fit:cover;background:#efe7dc" />`;
+        return `<img src="${u}" alt="" />`;
       }).join("");
-      return `<article class="news">
-        <time>${a.created_at} · ${a.category}</time>
-        <h3>${a.title}</h3>
-        ${imgs ? `<div style="display:flex;gap:6px;margin:10px 0">${imgs}</div>` : ""}
-        <p>${String(a.body||"").replace(/</g,"&lt;").replace(/\n/g,"<br/>")}</p>
+      const pic = hero
+        ? `<div class="pic" style="background-image:url('${hero}')"></div>`
+        : `<div class="pic" style="background:#e8eef2;display:flex;align-items:center;justify-content:center;color:#4a6a82;font-size:13px">此篇尚未附圖，請於後台三格選圖後重發</div>`;
+      return `<article class="look feature">
+        ${pic}
+        <div class="cap">
+          <span>${a.created_at} · ${a.category}</span>
+          <b>${a.title}</b>
+          <span>${String(a.body||"").replace(/</g,"&lt;").replace(/\n/g,"<br/>")}</span>
+          ${extra ? `<div style="display:flex;gap:6px;margin-top:10px">${extra}</div>` : ""}
+        </div>
       </article>`;
-    }).join("");
+    }).join("") + "</div>";
   }).catch(() => {
     document.getElementById("liveArts").textContent = "文章載入失敗";
   });
