@@ -237,6 +237,8 @@ MIME = {
     ".gif": "image/gif",
     ".svg": "image/svg+xml",
     ".ico": "image/x-icon",
+    ".txt": "text/plain; charset=utf-8",
+    ".xml": "application/xml; charset=utf-8",
 }
 
 
@@ -385,6 +387,11 @@ class Handler(http.server.BaseHTTPRequestHandler):
                 return
         if path in ("/admin", "/admin/", "/admin.html"):
             found = resolve_static("admin.html")
+            if found:
+                self.send_file(found)
+                return
+        if path in ("/fashion", "/fashion/", "/fashion.html", "/ootd", "/ootd/"):
+            found = resolve_static("fashion.html")
             if found:
                 self.send_file(found)
                 return
