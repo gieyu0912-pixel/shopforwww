@@ -233,4 +233,50 @@ $("pwBtn").onclick = async () => {
   if (me.data.ok) applyPwAlert(me.data);
 };
 
+async function loadArts() {
+  const box = $("artList");
+  if (!box) return;
+  const r = await api("/api/articles");
+  if (!r.data.ok || !r.data.articles.length) {
+    box.textContent = "尚無文章。";
+    return;
+  }
+  box.innerHTML = r.data.articles.map((a) =>
+    `<div class="price-row" style="grid-template-columns:1fr">
+      <div><div class="fn">${a.category} · ${a.created_at}</div>
+      <div>${a.title}</div></div>
+    </div>`
+  ).join("");
+}
+
+const oldRefresh = refresh;
+refresh = async function () {
+  await oldRefresh();
+  await loadArts();
+};
+
+if ($("artBtn")) {
+  $("artBtn").onclick = async () => {
+    $("artMsg").textContent = "";
+    const { data } = await api("/api/admin/articles", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        title: $("artTitle").value,
+        body: $("artBody").value,
+        category: $("artCat").value,
+      }),
+    });
+    if (!data.ok) {
+      $("artMsg").textContent = data.error || "送出失敗";
+      return;
+    }
+    $("artMsg").style.color = "#2f6b4f";
+    $("artMsg").textContent = `已上架（${data.created_at}）`;
+    $("artTitle").value = "";
+    $("artBody").value = "";
+    loadArts();
+  };
+}
+
 boot();
