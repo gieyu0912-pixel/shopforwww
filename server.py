@@ -110,6 +110,13 @@ def init_db():
             token TEXT PRIMARY KEY,
             created_at TEXT
         );
+        CREATE TABLE IF NOT EXISTS articles (
+            id INTEGER PRIMARY KEY AUTOINCREMENT,
+            title TEXT NOT NULL,
+            body TEXT NOT NULL,
+            category TEXT NOT NULL,
+            created_at TEXT NOT NULL
+        );
         """
     )
     try:
@@ -354,6 +361,39 @@ class Handler(http.server.BaseHTTPRequestHandler):
             self.send_json({"ok": True, "orders": orders})
             return
 
+        if path == "/api/articles":
+            conn = db()
+            cat = (qs.get("category") or [""])[0]
+            if cat in ("OOTD", "流行", "新聞"):
+                rows = conn.execute(
+                    "SELECT id,title,body,category,created_at FROM articles WHERE category=? ORDER BY id DESC",
+                    (cat,),
+                ).fetchall()
+            else:
+                rows = conn.execute(
+                    "SELECT id,title,body,category,created_at FROM articles ORDER BY id DESC"
+                ).fetchall()
+            conn.close()
+            self.send_json({"ok": True, "articles": [dict(r) for r in rows]})
+            return
+
+        if path.startswith("/api/articles/"):
+            try:
+                aid = int(path.rsplit("/", 1)[-1])
+            except Exception:
+                self.send_json({"ok": False}, 404)
+                return
+            conn = db()
+            row = conn.execute(
+                "SELECT id,title,body,category,created_at FROM articles WHERE id=?", (aid,)
+            ).fetchone()
+            conn.close()
+            if not row:
+                self.send_json({"ok": False}, 404)
+                return
+            self.send_json({"ok": True, "article": dict(row)})
+            return
+
         if path == "/api/admin/stats":
             if not self.is_admin():
                 self.send_json({"ok": False}, 401)
@@ -585,6 +625,31 @@ class Handler(http.server.BaseHTTPRequestHandler):
             conn.commit()
             conn.close()
             self.send_json({"ok": True, "added": len(created), "products": created})
+            return
+
+        if path == "/api/admin/articles":
+            if not self.is_admin():
+                self.send_json({"ok": False, "error": "未登入"}, 401)
+                return
+            data = self.read_json()
+            title = (data.get("title") or "").strip()
+            body = (data.get("body") or "").strip()
+            category = (data.get("category") or "").strip()
+            if not title or not body:
+                self.send_json({"ok": False, "error": "請填標題與內容"}, 400)
+                return
+            if category not in ("OOTD", "流行", "新聞"):
+                category = "流行"
+            now = datetime.now().strftime("%Y-%m-%d %H:%M")
+            conn = db()
+            cur = conn.execute(
+                "INSERT INTO articles(title,body,category,created_at) VALUES(?,?,?,?)",
+                (title[:120], body[:8000], category, now),
+            )
+            aid = cur.lastrowid
+            conn.commit()
+            conn.close()
+            self.send_json({"ok": True, "id": aid, "created_at": now, "category": category})
             return
 
         self.send_error(404, "Not Found")
