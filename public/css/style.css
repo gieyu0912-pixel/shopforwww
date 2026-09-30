@@ -195,6 +195,14 @@ th { font-size: 11px; letter-spacing: .14em; color: var(--muted); font-weight: 5
 .prose h3 { color: var(--ink); font-size: 18px; margin: 22px 0 8px; }
 .prose ol { padding-left: 20px; }
 .prose .addr { color: var(--pacific); font-weight: 500; }
+.ticker {
+  display: flex; align-items: center; gap: 16px;
+  border-bottom: 1px solid var(--line); background: #fff;
+  padding: 10px 20px; font-family: "Noto Sans TC", sans-serif; font-size: 13px;
+}
+.ticker > a { color: #0068A8; font-weight: 500; white-space: nowrap; }
+.ticker-track { overflow: hidden; flex: 1; }
+.ticker-track a { margin-right: 22px; color: #16324f; white-space: nowrap; display: inline-block; }
 .chip.on { background: var(--pacific); color: #fff; border-color: var(--pacific); }
 .price { color: var(--pacific); }
 @media (max-width: 860px) {
