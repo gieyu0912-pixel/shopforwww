@@ -36,6 +36,7 @@
       <nav>
         <button class="on" data-tab="orders">依序出貨</button>
         <button data-tab="upload">批次上圖</button>
+        <button data-tab="journal">穿搭誌發文</button>
         <button data-tab="password">更改密碼</button>
         <button id="logout">登出</button>
         <a href="/" style="color:#c4a484;padding:10px 12px;font-size:13px;">查看前台</a>
@@ -91,6 +92,32 @@
         <p class="hint" id="uploadMsg"></p>
       </section>
 
+      <section class="section" id="tab-journal">
+        <div class="sec-head"><h2>穿搭誌發文</h2><span>送出後自動帶日期，前台 /fashion 立即顯示</span></div>
+        <div class="login-card" style="padding:0;border:0;background:transparent;max-width:640px">
+          <div class="field">
+            <label>類別</label>
+            <select id="artCat">
+              <option value="OOTD">OOTD</option>
+              <option value="流行">近期流行</option>
+              <option value="新聞">時尚新聞</option>
+            </select>
+          </div>
+          <div class="field">
+            <label>文章標題</label>
+            <input id="artTitle" placeholder="例如：本週通勤 OOTD" />
+          </div>
+          <div class="field">
+            <label>內容</label>
+            <textarea id="artBody" rows="8" placeholder="穿搭說明、流行重點或新聞整理" style="width:100%;min-height:160px;padding:10px 12px;border:1px solid var(--line);font-size:15px"></textarea>
+          </div>
+          <div class="err" id="artMsg"></div>
+          <button class="primary" id="artBtn">送出並上架穿搭誌</button>
+        </div>
+        <div class="sec-head" style="margin-top:28px"><h2>已發布</h2><span>新到舊</span></div>
+        <div id="artList" class="hint">載入中…</div>
+      </section>
+
       <section class="section" id="tab-password">
         <div class="sec-head"><h2>更改密碼</h2><span>建議每 3 個月更換一次</span></div>
         <div class="login-card" style="padding:0;border:0;background:transparent;max-width:420px">
@@ -103,6 +130,6 @@
       </section>
     </main>
   </div>
-  <script src="/js/admin.js?v=3"></script>
+  <script src="/js/admin.js?v=4"></script>
 </body>
 </html>

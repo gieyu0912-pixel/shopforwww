@@ -98,6 +98,12 @@
       </article>
     </div>
 
+    <section class="prose" id="liveFeed">
+      <h2>店長最新發布</h2>
+      <p>後台上架的 OOTD、流行與新聞會出現在這裡，並自動帶日期。</p>
+      <div id="liveArts" class="hint">載入中…</div>
+    </section>
+
     <section class="prose">
       <h2>近期流行服飾</h2>
       <p>2026 秋冬韓系與伸展台正在看的單品，店內選品會往這個方向補：</p>
@@ -133,5 +139,23 @@
   </main>
 
   <footer>Www恣意風尚｜330桃園市桃園區文化里中正路45號｜穿搭誌 /fashion</footer>
+  <script>
+  fetch("/api/articles").then(r => r.json()).then(d => {
+    const box = document.getElementById("liveArts");
+    if (!d.ok || !d.articles || !d.articles.length) {
+      box.textContent = "尚無新文，以下為常駐趨勢與新聞整理。";
+      return;
+    }
+    box.innerHTML = d.articles.map(a =>
+      `<article class="news">
+        <time>${a.created_at} · ${a.category}</time>
+        <h3>${a.title}</h3>
+        <p>${String(a.body||"").replace(/</g,"&lt;").replace(/\n/g,"<br/>")}</p>
+      </article>`
+    ).join("");
+  }).catch(() => {
+    document.getElementById("liveArts").textContent = "文章載入失敗";
+  });
+  </script>
 </body>
 </html>
